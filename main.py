@@ -7,15 +7,16 @@ from datetime import datetime
 def point_domain(name):
     try:
         r = cf.zones.dns_records.post(zone_id,
-                                      data={u'type': u'CNAME', u'name': name, u'content': target_domain, u'ttl': ttl,
-                                            u'proxied': proxied})
+                                      data={'type': 'CNAME', 'name': name, 'content': target_domain, 'ttl': ttl,
+                                            'proxied': proxied})
+
     except CloudFlare.exceptions.CloudFlareAPIError as e:
-        print '/zones.dns_records.post %s - %d %s' % (name, e, e)
+        print('/zones.dns_records.post %s - %d %s' % (name, e, e))
 
 
 def check_container(c):
-    for prop in c.attrs.get(u'Config').get(u'Env'):
-        if u'VIRTUAL_HOST' in prop or u'FLARE_DOMAIN' in prop:
+    for prop in c.attrs.get('Config').get('Env'):
+        if 'VIRTUAL_HOST' in prop or 'FLARE_DOMAIN' in prop:
             value = prop.split("=")[1].strip()
             if ',' in value:
                 for v in value.split(","):
@@ -49,10 +50,7 @@ try:
 except KeyError as e:
     exit('TARGET_DOMAIN not defined')
 
-try:
-    proxied = os.environ['PROXIED']
-except KeyError as e:
-    proxied = false
+proxied = True if os.environ.get('PROXIED') == 'True' or True else False
 
 try:
     ttl = os.environ['TTL']
@@ -66,10 +64,10 @@ init()
 
 t = datetime.now().time().strftime("%s")
 
-for event in client.events(since=t, filters={'status': u'start'}, decode=True):
-    if event.get(u'status') == u'start':
+for event in client.events(since=t, filters={'status': 'start'}, decode=True):
+    if event.get('status') == 'start':
         try:
-            print u'started %s' % event.get(u'id')
-            check_container(client.containers.get(event.get(u'id')))
+            print('started %s' % event.get('id'))
+            check_container(client.containers.get(event.get('id')))
         except docker.errors.NotFound as e:
-            print 'Ignoring %s' % event.get(u'from')
+            print('Ignoring %s' % event.get('from'))
